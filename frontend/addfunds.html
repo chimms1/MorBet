@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Funds</title>
+</head>
+<body>
+  <nav>
+    <a href="dashboard.html">Dashboard</a> |
+    <a href="withdraw.html">Withdraw</a> |
+    <a href="changepassword.html">Change Password</a> |
+    <a href="http://localhost:3000/logout" style="float:right">Logout</a>
+  </nav>
+  <h2>Add Funds</h2>
+  <form action="http://localhost:3000/addfunds" method="POST">
+    <input type="number" name="amount" placeholder="Amount"><br>
+    <button type="submit">Add</button>
+  </form>
+</body>
+</html>

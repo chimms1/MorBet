@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Withdraw</title>
+</head>
+<body>
+  <nav>
+    <a href="dashboard.html">Dashboard</a> |
+    <a href="addfunds.html">Add Funds</a> |
+    <a href="changepassword.html">Change Password</a> |
+    <a href="http://localhost:3000/logout" style="float:right">Logout</a>
+  </nav>
+  <h2>Withdraw</h2>
+  <!-- GET form (CSRF vulnerable) -->
+  <form action="http://localhost:3000/withdraw" method="GET">
+    <input type="text" name="account" placeholder="Account No"><br>
+    <input type="number" name="amount" placeholder="Amount"><br>
+    <button type="submit">Withdraw</button>
+  </form>
+</body>
+</html>
