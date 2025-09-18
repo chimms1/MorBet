@@ -140,12 +140,20 @@ app.get("/comments", requireLogin, (req, res) => {
 });
 
 // Post a comment (stored XSS possible)
+// Post a comment (SECURE from SQL Injection)
 app.post("/comment", requireLogin, (req, res) => {
   const user = req.cookies.session;
   const { message } = req.body;
-  const q = `INSERT INTO comments (username, message) VALUES ('${user}', '${message}')`;
-  db.query(q, (err) => {
-    if (err) return res.send("Error: " + err);
+
+  // Use '?' as placeholders for user-supplied data
+  const q = 'INSERT INTO comments (username, message) VALUES (?, ?)';
+
+  // Pass the variables in an array. The database driver handles sanitization.
+  db.query(q, [user, message], (err) => {
+    if (err) {
+      console.error(err); // Log the actual error for debugging
+      return res.status(500).send("Error posting comment.");
+    }
     res.redirect("/frontend/dashboard.html");
   });
 });

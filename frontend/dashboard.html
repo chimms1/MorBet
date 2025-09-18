@@ -82,21 +82,74 @@
         document.getElementById("wallet").innerText = "Error loading balance";
       }
     }
-
+    
     async function loadComments() {
       try {
         let res = await fetch("/comments");
         let data = await res.json();
-        let html = "";
-        for (let c of data) {
-          // intentionally unsafe innerHTML for XSS
-          html += `<div><b>${c.username}</b>: ${c.message}</div>`;
+
+        const commentsEl = document.getElementById("comments");
+        commentsEl.innerHTML = ""; // clear
+
+        // Helper: convert an HTML string into DOM nodes and ensure scripts run
+        function appendHtmlAndRunScripts(container, htmlStr) {
+          // Parse the HTML string into a DocumentFragment (no innerHTML on target)
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(htmlStr, "text/html");
+
+          // Append non-script nodes directly
+          Array.from(doc.body.childNodes).forEach(node => {
+            if (node.tagName && node.tagName.toLowerCase() === "script") {
+              // handle script nodes separately below
+              return;
+            }
+            container.appendChild(document.importNode(node, true));
+          });
+
+          // Find script nodes in the parsed document and re-create them so they execute
+          const scripts = doc.querySelectorAll("script");
+          scripts.forEach(oldScript => {
+            const newScript = document.createElement("script");
+
+            // copy attributes (type, src, async, etc.)
+            for (let i = 0; i < oldScript.attributes.length; i++) {
+              const attr = oldScript.attributes[i];
+              newScript.setAttribute(attr.name, attr.value);
+            }
+
+            // inline script: copy text content
+            newScript.text = oldScript.text;
+
+            // Append the new script into the container (this executes it)
+            container.appendChild(newScript);
+          });
         }
-        document.getElementById("comments").innerHTML = html;
+
+        // Render each comment: username (text) + message (HTML + scripts executed)
+        for (let c of data) {
+          const row = document.createElement("div");
+          row.style.padding = "6px 0";
+          row.style.borderBottom = "1px solid #eee";
+
+          const author = document.createElement("div");
+          author.innerText = c.username;           // safe: username shown as plain text
+          author.style.fontWeight = "600";
+          row.appendChild(author);
+
+          // messageContainer will get parsed HTML and scripts executed
+          const messageContainer = document.createElement("div");
+          appendHtmlAndRunScripts(messageContainer, c.message);
+          row.appendChild(messageContainer);
+
+          commentsEl.appendChild(row);
+        }
+
       } catch (e) {
         document.getElementById("comments").innerText = "Error loading comments";
+        console.error(e);
       }
     }
+
 
     // Load wallet + comments on page load
     loadBalance();
