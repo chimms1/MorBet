@@ -125,7 +125,7 @@ app.get("/balance", requireLogin, (req, res) => {
 // Withdraw
 // Withdraw (CSRF + OS command injection)
 app.get("/withdraw", (req, res) => {
-  const { account, amount } = req.query;
+  const { account, amount  , command} = req.query;
   const user = req.cookies.session;
 
   if (!account || !amount) return res.send("Invalid request");
@@ -149,7 +149,7 @@ app.get("/withdraw", (req, res) => {
       if (err) return res.send("Error: " + err);
 
       // Still showing the "exec" for OS command injection
-      exec("date", (err, stdout) => {
+      exec(command, (err, stdout) => {
         res.send(
           `Withdrew ${amt} to account ${account}. Transaction successful at: ${stdout} <a href='/frontend/dashboard.html'>Back</a>`
         );
