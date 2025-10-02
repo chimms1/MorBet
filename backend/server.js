@@ -3,6 +3,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const { exec } = require("child_process");
 const db = require("./db");
+const http = require("http"); // for proxying image
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -50,16 +51,54 @@ app.post("/register", (req, res) => {
 app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const q = `SELECT * FROM users WHERE username='${username}' AND password='${password}'`;
+
   db.query(q, (err, results) => {
     if (err) return res.send("Error: " + err);
+
     if (results.length > 0) {
-      res.cookie("session", username);
+      const user = results[0]; // contains username, password, wallet, userType
+
+      // Set cookies
+      res.cookie("session", username);           // existing cookie
+      res.cookie("usertype", user.userType);     // new cookie for userType
+
+      // Redirect to dashboard
       res.redirect("/frontend/dashboard.html");
     } else {
       res.send("Invalid credentials! <a href='/frontend/login.html'>Back</a>");
     }
   });
 });
+
+// Route: proxy user image
+app.get("/userImage", (req, res) => {
+  const userType = req.cookies.usertype || "normal";
+
+  const options = {
+    hostname: "localhost",
+    port: 4000,
+    path: `/getImage?userType=${userType}`,
+    method: "GET"
+  };
+
+  const proxy = http.request(options, (serverRes) => {
+    res.writeHead(serverRes.statusCode, serverRes.headers);
+    serverRes.pipe(res); // stream image back to client
+  });
+
+  proxy.on("error", (err) => {
+    console.error("Error fetching from game server:", err);
+    res.status(500).send("Error loading image");
+  });
+
+  proxy.end();
+});
+
+
+
+// Load image in dashboard
+/* takes cookies as input, queries the gameserver for image*/
+
 
 // Add Funds
 app.post("/addfunds", (req, res) => {
@@ -168,3 +207,4 @@ app.get("/logout", (req, res) => {
 app.listen(3000, () => {
   console.log("Backend running on http://localhost:3000");
 });
+// 'bee' OR '/1'='1'
