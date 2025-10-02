@@ -152,6 +152,15 @@
 
 
     // Load wallet + comments on page load
+  function loadUserBackground() {
+    document.body.style.backgroundImage = 'url("/userImage")';
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundRepeat = "no-repeat";
+    document.body.style.backgroundPosition = "center";
+  }
+
+  // Call background + existing loaders
+    loadUserBackground();
     loadBalance();
     loadComments();
   </script>
