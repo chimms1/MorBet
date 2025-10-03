@@ -74,12 +74,21 @@ app.post("/login", (req, res) => {
 app.get("/userImage", (req, res) => {
   const userType = req.cookies.usertype || "normal";
 
+  // const options = {
+  //   hostname: "localhost",
+  //   port: 4000,
+  //   path: `/getImage?userType=${userType}`,
+  //   method: "GET"
+  // };
+  
+  // options for proxy to game server
   const options = {
-    hostname: "localhost",
-    port: 4000,
+    hostname: process.env.GAMESERVER_HOST || "gameserver",
+    port: process.env.GAMESERVER_PORT || 4000,
     path: `/getImage?userType=${userType}`,
     method: "GET"
   };
+
 
   const proxy = http.request(options, (serverRes) => {
     res.writeHead(serverRes.statusCode, serverRes.headers);

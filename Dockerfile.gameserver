@@ -1,0 +1,12 @@
+# Dockerfile.gameserver
+FROM node:lts-trixie
+
+WORKDIR /usr/src/gameserver
+
+COPY GameServer/package*.json ./
+RUN npm ci --only=production
+
+COPY GameServer/ .
+
+EXPOSE 4000
+CMD ["node", "gameServer.js"]

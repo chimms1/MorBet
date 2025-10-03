@@ -1,0 +1,54 @@
+services:
+  db:
+    image: mysql:8.0-debian
+    container_name: vuln_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: vuln_app
+      MYSQL_USER: vuln_appuser
+      MYSQL_PASSWORD: vuln_app123
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/initdb/db-init.sql:/docker-entrypoint-initdb.d/01-db-init.sql:ro
+    ports:
+      - "3306:3306"    # optional (expose to host); remove if you don't want it accessible from host
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: vuln_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_USER: vuln_appuser
+      DB_PASS: vuln_app123
+      DB_NAME: vuln_app
+      GAMESERVER_HOST: gameserver
+      GAMESERVER_PORT: 4000
+    depends_on:
+      - db
+      - gameserver
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/usr/src/app/../frontend:ro   # serve your frontend directory; readonly inside container
+      - ./backend:/usr/src/app:ro               # optional: mount backend for quick edits (ro or rw)
+    # If you mount the backend over /usr/src/app, the image-installed node_modules may not be present.
+    # In dev, you might want to remove the build step and run 'npm install' in container. For production,
+    # prefer not to mount backend and use the built image.
+
+  gameserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.gameserver
+    container_name: vuln_gameserver
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./GameServer/images:/usr/src/gameserver/images:ro
+
+volumes:
+  db_data:

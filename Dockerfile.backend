@@ -1,0 +1,23 @@
+FROM node:lts-trixie
+
+# Create app dir
+WORKDIR /usr/src/app
+
+# Copy only package files first (for caching)
+COPY backend/package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
+
+# Copy backend code
+COPY backend/ .
+
+# # Copy wait script
+# COPY wait-for-db.sh /usr/src/app/wait-for-db.sh
+# RUN chmod +x /usr/src/app/wait-for-db.sh
+
+# Expose port
+EXPOSE 3000
+
+# Start server (wrapped with wait-for-db)
+CMD ["node", "server.js"]
