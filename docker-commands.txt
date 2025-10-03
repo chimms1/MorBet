@@ -1,0 +1,24 @@
+Build & run
+
+From repo root:
+
+# Build images and start containers (first run will initialize DB from SQL file)
+docker-compose up --build
+
+
+To run in background:
+
+docker-compose up -d --build
+
+
+Watch logs:
+
+docker-compose logs -f backend
+docker-compose logs -f db
+
+
+To remove everything (containers + network, leaving persistent DB data):
+
+docker-compose down
+# volumes remain; to drop data:
+docker-compose down -v    # WARNING: deletes db_data volume
