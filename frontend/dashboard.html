@@ -1,76 +1,116 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Dashboard</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <style>
     body {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
     }
-    .navbar {
-      background: #ddd;
-      padding: 10px;
-    }
-    .container {
-      display: flex;
-      margin-top: 20px;
-    }
-    .left {
+    .container-main {
       flex: 1;
-      padding: 10px;
+      padding-top: 20px;
+      padding-bottom: 40px;
     }
     .right {
-      flex: 1;
-      padding: 10px;
-      border-left: 1px solid #ccc;
-      height: 80vh;
+      border-left: 1px solid #e9ecef;
+      height: 75vh;
       display: flex;
       flex-direction: column;
+      background: #fff;
+      padding: 16px;
+      border-radius: 6px;
     }
     #comments {
       flex: 1;
       overflow-y: auto;
-      border: 1px solid #ccc;
-      padding: 5px;
+      border: 1px solid #eee;
+      padding: 8px;
       margin-bottom: 10px;
+      border-radius: 4px;
+      background: #fafafa;
     }
-    #comments div {
-      border-bottom: 1px solid #eee;
-      padding: 5px;
-    }
-    textarea {
-      width: 100%;
-      height: 60px;
-    }
+    #comments div { padding: 6px 0; border-bottom: 1px solid #f1f1f1; }
+    textarea { resize: vertical; }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <a href="/frontend/dashboard.html">Dashboard</a> |
-    <a href="/frontend/addfunds.html">Add Funds</a> |
-    <a href="/frontend/withdraw.html">Withdraw</a> |
-    <a href="/frontend/changepassword.html">Change Password</a> |
-    <a href="/logout">Logout</a>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+      <a class="navbar-brand" href="/frontend/dashboard.html">MorBet</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navMain">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item"><a class="nav-link" href="/frontend/dashboard.html">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/frontend/addfunds.html">Add Funds</a></li>
+          <li class="nav-item"><a class="nav-link" href="/frontend/withdraw.html">Withdraw</a></li>
+          <li class="nav-item"><a class="nav-link" href="/frontend/changepassword.html">Change Password</a></li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="btn btn-outline-secondary" href="/logout">Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="container container-main">
+    <div class="row">
+      <!-- Left column -->
+      <div class="col-md-6 mb-3">
+        <div class="card shadow-sm mb-3">
+          <div class="card-body">
+            <h4 class="card-title">Welcome to your Dashboard</h4>
+            <p class="card-text"><strong>Wallet Balance:</strong> <span id="wallet">Loading...</span></p>
+            <p class="text-muted">Quick actions</p>
+            <a href="/frontend/addfunds.html" class="btn btn-primary me-2">Add Funds</a>
+            <a href="/frontend/withdraw.html" class="btn btn-warning">Withdraw</a>
+          </div>
+        </div>
+
+        <!-- Betting box -->
+        <div class="card border-info shadow-sm">
+          <div class="card-body text-center text-muted">
+            <h6 class="card-title mb-2">⚽ Betting Functionality</h6>
+            <p class="card-text mb-0">Not yet developed.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column (comments) -->
+      <div class="col-md-6 mb-3">
+        <div class="right shadow-sm">
+          <h5>Public Comment Section</h5>
+          <div id="comments">Loading comments...</div>
+
+          <form method="POST" action="/comment">
+            <div class="mb-2">
+              <textarea name="message" class="form-control" placeholder="Write your comment here..." rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+              <button type="submit" class="btn btn-success">Post Comment</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div class="container">
-    <!-- Left column -->
-    <div class="left">
-      <h2>Welcome to your Dashboard</h2>
-      <p><strong>Wallet Balance:</strong> <span id="wallet">Loading...</span></p>
-    </div>
-
-    <!-- Right column: Public comments -->
-    <div class="right">
-      <h3>Public Comment Section</h3>
-      <div id="comments">Loading comments...</div>
-      <form method="POST" action="/comment">
-        <textarea name="message" placeholder="Write your comment here..."></textarea><br>
-        <button type="submit">Post Comment</button>
-      </form>
-    </div>
-  </div>
+  <!-- Bootstrap bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
     async function loadBalance() {
@@ -82,84 +122,63 @@
         document.getElementById("wallet").innerText = "Error loading balance";
       }
     }
-    
+
     async function loadComments() {
       try {
         let res = await fetch("/comments");
         let data = await res.json();
 
         const commentsEl = document.getElementById("comments");
-        commentsEl.innerHTML = ""; // clear
+        commentsEl.innerHTML = "";
 
-        // Helper: convert an HTML string into DOM nodes and ensure scripts run
         function appendHtmlAndRunScripts(container, htmlStr) {
-          // Parse the HTML string into a DocumentFragment (no innerHTML on target)
           const parser = new DOMParser();
           const doc = parser.parseFromString(htmlStr, "text/html");
-
-          // Append non-script nodes directly
           Array.from(doc.body.childNodes).forEach(node => {
-            if (node.tagName && node.tagName.toLowerCase() === "script") {
-              // handle script nodes separately below
-              return;
-            }
+            if (node.tagName && node.tagName.toLowerCase() === "script") return;
             container.appendChild(document.importNode(node, true));
           });
-
-          // Find script nodes in the parsed document and re-create them so they execute
           const scripts = doc.querySelectorAll("script");
           scripts.forEach(oldScript => {
             const newScript = document.createElement("script");
-
-            // copy attributes (type, src, async, etc.)
             for (let i = 0; i < oldScript.attributes.length; i++) {
               const attr = oldScript.attributes[i];
               newScript.setAttribute(attr.name, attr.value);
             }
-
-            // inline script: copy text content
             newScript.text = oldScript.text;
-
-            // Append the new script into the container (this executes it)
             container.appendChild(newScript);
           });
         }
 
-        // Render each comment: username (text) + message (HTML + scripts executed)
         for (let c of data) {
           const row = document.createElement("div");
           row.style.padding = "6px 0";
           row.style.borderBottom = "1px solid #eee";
 
           const author = document.createElement("div");
-          author.innerText = c.username;           // safe: username shown as plain text
+          author.innerText = c.username;
           author.style.fontWeight = "600";
           row.appendChild(author);
 
-          // messageContainer will get parsed HTML and scripts executed
           const messageContainer = document.createElement("div");
           appendHtmlAndRunScripts(messageContainer, c.message);
           row.appendChild(messageContainer);
 
           commentsEl.appendChild(row);
         }
-
       } catch (e) {
         document.getElementById("comments").innerText = "Error loading comments";
         console.error(e);
       }
     }
 
+    function loadUserBackground() {
+      document.body.style.backgroundImage = 'url("/userImage")';
+      document.body.style.backgroundSize = "cover";
+      document.body.style.backgroundRepeat = "no-repeat";
+      document.body.style.backgroundPosition = "center";
+    }
 
-    // Load wallet + comments on page load
-  function loadUserBackground() {
-    document.body.style.backgroundImage = 'url("/userImage")';
-    document.body.style.backgroundSize = "cover";
-    document.body.style.backgroundRepeat = "no-repeat";
-    document.body.style.backgroundPosition = "center";
-  }
-
-  // Call background + existing loaders
     loadUserBackground();
     loadBalance();
     loadComments();
